@@ -1,0 +1,131 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+concurrency:
+  group: issue-triage-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    # Solo issues (no PRs, que también disparan `issues` en algunos eventos),
+    # y nunca cuando la edición del cuerpo la hizo este mismo workflow
+    # (evita el bucle opened -> edita body -> edited -> vuelve a correr).
+    if: |
+      github.event.issue.pull_request == null &&
+      github.event.sender.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Ensure triage labels exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "area/gameplay" --color "1d76db" --description "Lógica de juego: piezas, rotación, colisiones, scoring" --force
+          gh label create "area/ui" --color "5319e7" --description "HUD, overlay, estilos, index.html / style.css" --force
+          gh label create "area/rendering" --color "0e8a16" --description "Canvas, draw(), ghost piece, animación" --force
+          gh label create "area/build" --color "bfd4f2" --description "Workflows, tooling, configuración del repo" --force
+          gh label create "priority/high" --color "b60205" --description "Bloquea el juego o lo hace injugable" --force
+          gh label create "priority/medium" --color "fbca04" --description "Impacto notable, con workaround" --force
+          gh label create "priority/low" --color "c2e0c6" --description "Cosmético o mejora menor" --force
+          gh label create "needs-info" --color "d876e3" --description "Falta reproducción o detalle para diagnosticar" --force
+          gh label create "ready-for-implementation" --color "0e8a16" --description "Diagnóstico claro; se puede implementar" --force
+
+      - name: Run Claude Code triage
+        id: claude-triage
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          claude_args: >-
+            --allowedTools "Read,Grep,Glob,Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Bash(gh search issues:*)"
+          prompt: |
+            Eres el responsable de hacer triage automático del issue #${{ github.event.issue.number }}
+            en el repositorio ${{ github.repository }} (un Tetris vanilla en HTML5 Canvas; lee CLAUDE.md
+            para entender la arquitectura: game.js concentra toda la lógica, index.html es el DOM,
+            style.css el tema visual).
+
+            Objetivo: diagnosticar el issue y dejarlo listo para que después alguien (o `@claude` en un
+            comentario) implemente la solución. **No modifiques código ni abras pull requests.**
+
+            Pasos:
+
+            1. Lee el issue completo:
+               `gh issue view ${{ github.event.issue.number }} --json title,body,labels,comments,author`
+
+            2. Lee el código relevante del repo (game.js, index.html, style.css, CLAUDE.md) para ubicar
+               la causa probable. Cita funciones/constantes concretas cuando aplique (por ejemplo
+               `tryRotate`, `lockPiece`, `clearLines`, `spawn`, `ghostY`, `LINE_SCORES`, `dropInterval`,
+               `PIECES`, `rotateCW`) o el archivo/selector correspondiente en index.html / style.css.
+
+            3. Busca posibles duplicados con:
+               `gh search issues --repo ${{ github.repository }} "<palabras clave del título>"`
+               Si encuentras un duplicado claro, mencionalo en el diagnóstico (no cierres el issue).
+
+            4. Asigna labels con `gh issue edit ${{ github.event.issue.number }} --add-label "..."`
+               (puedes combinar varias en una sola invocación separadas por comas). Reglas:
+               - Exactamente un tipo: `bug`, `enhancement`, `documentation` o `question`.
+               - Exactamente una prioridad: `priority/high`, `priority/medium` o `priority/low`.
+               - Uno o más de área: `area/gameplay`, `area/ui`, `area/rendering`, `area/build`.
+               - Exactamente uno de estado: `needs-info` (si falta información para diagnosticar con
+                 certeza, por ejemplo pasos de reproducción, navegador, o comportamiento esperado) o
+                 `ready-for-implementation` (si el diagnóstico ya es suficiente para codear la solución).
+               - Usa `accessibility`, `good first issue`, `duplicate`, `invalid` o `wontfix` solo cuando
+                 apliquen claramente.
+               - Si el issue ya tenía labels de esta taxonomía de una corrida anterior (fue editado),
+                 quita las que ya no correspondan con `--remove-label` antes de añadir las nuevas, para
+                 no dejar labels contradictorias (p. ej. dos prioridades a la vez).
+
+            5. Publica el diagnóstico como comentario nuevo con
+               `gh issue comment ${{ github.event.issue.number }} --body-file <archivo>` usando este
+               formato en Markdown:
+
+               ## Diagnóstico automático
+
+               **Resumen:** (1-2 frases)
+
+               **Comportamiento esperado vs. actual:**
+
+               **Causa probable:** (archivos/funciones/constantes concretas)
+
+               **Archivos a tocar:**
+
+               **Plan de implementación sugerido:**
+               1. ...
+               2. ...
+
+               **Riesgos / efectos colaterales:**
+
+               **Información faltante:** (si aplica; si no, escribe "Ninguna")
+
+               **Criterios de aceptación:**
+               - [ ] ...
+
+            6. Actualiza el cuerpo del issue para añadir (o reemplazar si ya existe) un bloque de resumen
+               delimitado exactamente así, sin tocar el resto del texto original del autor:
+
+               <!-- claude-triage -->
+               **🤖 Triage automático:** <tipo> · <prioridad> · <área(s)>
+               <causa probable en 1-2 líneas>
+               <!-- /claude-triage -->
+
+               Para hacerlo: obtén el body actual, si ya contiene `<!-- claude-triage -->` reemplaza todo
+               el bloque entre los marcadores (inclusive) por la versión nueva; si no existe, añade el
+               bloque al final del body, precedido por una línea en blanco. Guarda el resultado en un
+               archivo temporal y aplica con
+               `gh issue edit ${{ github.event.issue.number }} --body-file <archivo>`.
+
+            Recuerda: solo estás haciendo triage y diagnóstico, no implementación.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
