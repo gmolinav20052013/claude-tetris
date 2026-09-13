@@ -59,6 +59,13 @@ jobs:
             Objetivo: diagnosticar el issue y dejarlo listo para que después alguien (o `@claude` en un
             comentario) implemente la solución. **No modifiques código ni abras pull requests.**
 
+            Todo comentario o texto que publiques (paso 5 y paso 6) debe estar escrito en Markdown
+            válido y bien formado, en el dialecto GitHub Flavored Markdown (GFM), de modo que GitHub lo
+            renderice correctamente: usa encabezados (`##`), negritas (`**texto**`), listas con `-` o
+            `1.`, checkboxes `- [ ]`, bloques de código con backticks simples para nombres de
+            funciones/constantes (por ejemplo `tryRotate`) y bloques triples ```` ``` ```` cuando cites
+            fragmentos de código. No uses HTML crudo ni sintaxis que GitHub no soporte.
+
             Pasos:
 
             1. Lee el issue completo:
