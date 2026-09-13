@@ -39,8 +39,30 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
+const themeToggle = document.getElementById('theme-toggle-input');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+
+const THEME_STORAGE_KEY = 'tetris-theme';
+let gridLineColor = '#22222e';
+let blockHighlightColor = 'rgba(255,255,255,0.12)';
+let blockBorderColor = 'rgba(0,0,0,0.15)';
+
+function applyTheme(isLight) {
+  document.body.classList.toggle('light-theme', isLight);
+  gridLineColor = isLight ? '#dcdce6' : '#22222e';
+  blockHighlightColor = isLight ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)';
+  blockBorderColor = isLight ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.15)';
+  themeToggle.checked = isLight;
+}
+
+applyTheme(localStorage.getItem(THEME_STORAGE_KEY) === 'light');
+
+themeToggle.addEventListener('change', () => {
+  const isLight = themeToggle.checked;
+  applyTheme(isLight);
+  localStorage.setItem(THEME_STORAGE_KEY, isLight ? 'light' : 'dark');
+});
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -163,13 +185,18 @@ function drawBlock(context, x, y, colorIndex, size, alpha) {
   context.fillStyle = color;
   context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
   // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
+  context.fillStyle = blockHighlightColor;
   context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  // border for definition against light/dark backgrounds
+  context.globalAlpha = alpha ?? 1;
+  context.strokeStyle = blockBorderColor;
+  context.lineWidth = 1;
+  context.strokeRect(x * size + 1, y * size + 1, size - 2, size - 2);
   context.globalAlpha = 1;
 }
 
 function drawGrid() {
-  ctx.strokeStyle = '#22222e';
+  ctx.strokeStyle = gridLineColor;
   ctx.lineWidth = 0.5;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath();
