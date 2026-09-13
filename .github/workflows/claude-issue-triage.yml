@@ -4,18 +4,21 @@ on:
   issues:
     types: [opened, edited]
 
-concurrency:
-  group: issue-triage-${{ github.event.issue.number }}
-  cancel-in-progress: true
-
 jobs:
   triage:
     # Solo issues (no PRs, que también disparan `issues` en algunos eventos),
     # y nunca cuando la edición del cuerpo la hizo este mismo workflow
     # (evita el bucle opened -> edita body -> edited -> vuelve a correr).
+    #
+    # La concurrencia vive aquí (a nivel de job) y no a nivel de workflow:
+    # un job saltado por `if:` nunca llega a tomar el grupo de concurrencia,
+    # así que la edición que hace el propio bot no cancela el run en curso.
     if: |
       github.event.issue.pull_request == null &&
       github.event.sender.type != 'Bot'
+    concurrency:
+      group: issue-triage-${{ github.event.issue.number }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     permissions:
       contents: read
