@@ -46,6 +46,7 @@
             <li><kbd>↓</kbd> bajar</li>
             <li><kbd>Space</kbd> caída</li>
             <li><kbd>P</kbd> pausa</li>
+            <li><kbd>Esc</kbd> pausa / volver</li>
           </ul>
         </div>
       </aside>
@@ -53,9 +54,42 @@
 
     <div id="overlay" class="overlay hidden">
       <div class="overlay-box">
-        <p id="overlay-title">GAME OVER</p>
-        <p id="overlay-score"></p>
-        <button id="restart-btn">Reiniciar</button>
+        <div id="pause-menu-view" class="overlay-view">
+          <p class="overlay-heading">PAUSA</p>
+          <ul class="pause-menu" id="pause-menu-list">
+            <li class="pause-menu-item" data-action="resume">Reanudar</li>
+            <li class="pause-menu-item" data-action="restart">Reiniciar</li>
+            <li class="pause-menu-item" data-action="controls">Ver controles</li>
+            <li class="pause-menu-item pause-menu-level" data-action="level">
+              <span>Nivel inicial</span>
+              <span class="level-selector">
+                <button type="button" id="level-dec" class="level-btn" aria-label="Bajar nivel inicial">◀</button>
+                <span class="level-value" id="level-value">1</span>
+                <button type="button" id="level-inc" class="level-btn" aria-label="Subir nivel inicial">▶</button>
+              </span>
+            </li>
+          </ul>
+          <p class="pause-menu-hint">El nivel inicial se aplica en la próxima partida.</p>
+        </div>
+
+        <div id="controls-view" class="overlay-view" hidden>
+          <p class="overlay-heading">CONTROLES</p>
+          <ul class="controls-list">
+            <li><kbd>←</kbd><kbd>→</kbd> mover</li>
+            <li><kbd>↑</kbd> rotar</li>
+            <li><kbd>↓</kbd> bajar</li>
+            <li><kbd>Space</kbd> caída</li>
+            <li><kbd>P</kbd> pausa</li>
+            <li><kbd>Esc</kbd> pausa / volver</li>
+          </ul>
+          <button type="button" id="controls-back-btn" class="menu-btn">Volver</button>
+        </div>
+
+        <div id="gameover-view" class="overlay-view" hidden>
+          <p id="overlay-title">GAME OVER</p>
+          <p id="overlay-score"></p>
+          <button id="restart-btn">Reiniciar</button>
+        </div>
       </div>
     </div>
   </div>
