@@ -24,7 +24,7 @@
   --grid-line: #22222e;
 }
 
-body.light-theme {
+body[data-skin="pastel"] {
   --bg: #f2f2f7;
   --text-color: #26262f;
   --accent: #3355cc;
@@ -42,6 +42,46 @@ body.light-theme {
   --restart-color: #ffffff;
   --restart-hover-bg: #4a6bde;
   --grid-line: #dcdce4;
+}
+
+body[data-skin="neon"] {
+  --bg: #000000;
+  --text-color: #e6faff;
+  --accent: #00e5ff;
+  --board-bg: #050507;
+  --border-color: #1a1a2a;
+  --board-shadow: rgba(0, 229, 255, 0.35);
+  --label-color: #5f8a99;
+  --controls-color: #7fbfcf;
+  --kbd-bg: #0c0c14;
+  --kbd-border: #1f3a45;
+  --kbd-color: #7fe8ff;
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --overlay-title-color: #ff1744;
+  --restart-bg: #00e5ff;
+  --restart-color: #001014;
+  --restart-hover-bg: #66f2ff;
+  --grid-line: #10202a;
+}
+
+body[data-skin="pixel"] {
+  --bg: #14141c;
+  --text-color: #e0e0d0;
+  --accent: #e8c93a;
+  --board-bg: #1c1c26;
+  --border-color: #3a3a2a;
+  --board-shadow: rgba(0, 0, 0, 0.6);
+  --label-color: #7a7a60;
+  --controls-color: #999980;
+  --kbd-bg: #26261a;
+  --kbd-border: #4a4a30;
+  --kbd-color: #c0c090;
+  --overlay-bg: rgba(10, 10, 10, 0.8);
+  --overlay-title-color: #d14c4c;
+  --restart-bg: #e8c93a;
+  --restart-color: #14140a;
+  --restart-hover-bg: #f2dc70;
+  --grid-line: #2a2a1e;
 }
 
 body {
@@ -76,7 +116,7 @@ body {
   color: var(--accent);
 }
 
-.theme-toggle {
+.skin-selector {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -88,38 +128,15 @@ body {
   user-select: none;
 }
 
-.theme-toggle input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.theme-toggle-slider {
-  position: relative;
-  width: 36px;
-  height: 18px;
+.skin-selector select {
   background: var(--kbd-bg);
   border: 1px solid var(--kbd-border);
-  border-radius: 999px;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
-
-.theme-toggle-slider::before {
-  content: '';
-  position: absolute;
-  top: 1px;
-  left: 1px;
-  width: 14px;
-  height: 14px;
-  background: var(--accent);
-  border-radius: 50%;
-  transition: transform 0.15s;
-}
-
-.theme-toggle input:checked + .theme-toggle-slider::before {
-  transform: translateX(18px);
+  color: var(--kbd-color);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .game-container {
