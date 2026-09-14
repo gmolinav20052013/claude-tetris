@@ -16,7 +16,22 @@
         <span class="theme-toggle-text">LIGHT</span>
       </label>
     </div>
-    <div class="game-container">
+    <div id="start-screen" class="start-screen">
+      <h2 class="start-screen-title">TETRIS</h2>
+      <table class="records-table">
+        <thead>
+          <tr><th>Nombre</th><th>Puntuación</th><th>Líneas</th><th>Nivel</th></tr>
+        </thead>
+        <tbody id="start-records-body"></tbody>
+      </table>
+      <p id="start-best-stats" class="best-stats"></p>
+      <div class="start-screen-actions">
+        <button id="play-btn">JUGAR</button>
+        <button id="clear-records-btn" class="secondary-btn">Borrar records</button>
+      </div>
+    </div>
+
+    <div class="game-container hidden">
       <canvas id="board" width="300" height="600"></canvas>
 
       <aside class="panel">
@@ -55,6 +70,21 @@
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
+
+        <div id="overlay-records" class="overlay-records">
+          <table class="records-table">
+            <thead>
+              <tr><th>Nombre</th><th>Puntuación</th><th>Líneas</th><th>Nivel</th></tr>
+            </thead>
+            <tbody id="overlay-records-body"></tbody>
+          </table>
+          <p id="overlay-best-stats" class="best-stats"></p>
+          <div id="name-entry" class="name-entry hidden">
+            <input type="text" id="player-name-input" maxlength="12" value="ANON" autofocus />
+            <button id="save-record-btn">Guardar</button>
+          </div>
+        </div>
+
         <button id="restart-btn">Reiniciar</button>
       </div>
     </div>
